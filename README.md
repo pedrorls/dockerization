@@ -11,8 +11,6 @@
 
 ## Running the Application
 
-While the whole point of this course is that you probably won't want/need to run the application locally (See: `11-development-workflow`), we can do so as a starting point.
-
 The `Makefile` contains the commands to start each application.
 
 ### Postgres
