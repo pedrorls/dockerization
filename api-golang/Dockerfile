@@ -1,7 +1,5 @@
-# Pin specific version for stability
-# Use separate stage for building image
-# Use debian for easier build utilities
-FROM golang:1.19-bullseye AS build-base
+
+FROM golang:1.23.4-bullseye AS build-base
 
 WORKDIR /app 
 
@@ -13,17 +11,17 @@ RUN --mount=type=cache,target=/go/pkg/mod \
   --mount=type=cache,target=/root/.cache/go-build \
   go mod download
 
-FROM build-base AS dev
+FROM build-base AS development
 
 # Install air for hot reload & delve for debugging
-RUN go install github.com/cosmtrek/air@latest && \
-  go install github.com/go-delve/delve/cmd/dlv@latest
+RUN go install github.com/air-verse/air@latest && \
+    go install github.com/go-delve/delve/cmd/dlv@latest
 
 COPY . .
 
 CMD ["air", "-c", ".air.toml"]
 
-FROM build-base AS build-production
+FROM build-base AS production
 
 # Add non root user
 RUN useradd -u 1001 nonroot
@@ -53,13 +51,13 @@ ENV GIN_MODE=release
 WORKDIR /
 
 # Copy the passwd file
-COPY --from=build-production /etc/passwd /etc/passwd
+COPY --from=production /etc/passwd /etc/passwd
 
 # Copy the healthcheck binary from the build stage
-COPY --from=build-production /app/healthcheck/healthcheck healthcheck
+COPY --from=production /app/healthcheck/healthcheck healthcheck
 
 # Copy the app binary from the build stage
-COPY --from=build-production /app/api-golang api-golang
+COPY --from=production /app/api-golang api-golang
 
 # Use nonroot user
 USER nonroot

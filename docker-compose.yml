@@ -6,11 +6,19 @@ services:
       dockerfile: Dockerfile.react
     init: true
     volumes:
-      - ./client-react/vite.config.prod.js:/usr/src/app/vite.config.js
+      - type: bind
+        source: ./client-react
+        target: /usr/src/app
+      - type: volume
+        target: /usr/src/app/node_modules
+      - type: bind
+        source: ./client-react/vite.config.js
+        target: /usr/src/app/vite.config.js
     networks:
       - frontend
     ports:
       - 5173:5173
+
   client-react-nginx:
     image: client-react-nginx
     build:
@@ -21,12 +29,20 @@ services:
       - frontend
     ports:
       - 80:8080
+
   api-node:
     image: api-node
     build:
       context: ./api-node
       dockerfile: Dockerfile
+      target: development
     init: true
+    volumes:
+      - type: bind
+        source: .api-node/
+        target: /usr/src/app/
+      - type: volume
+        target: /usr/src/app/node_modules 
     depends_on:
       - db
     environment:
@@ -36,12 +52,18 @@ services:
       - backend
     ports:
       - 3000:3000
+
   api-golang:
     image: api-golang
     build:
       context: ./api-golang
       dockerfile: Dockerfile
+      target: development
     init: true
+    volumes:
+      - type: bind
+        source: ./api-golang/
+        target: /app/
     depends_on:
       - db
     environment:
@@ -51,6 +73,7 @@ services:
       - backend
     ports:
       - 8080:8080
+
   db:
     image: postgres:15.1-alpine
     volumes:
@@ -61,8 +84,10 @@ services:
       - backend
     ports:
       - 5432:5432
+
 volumes:
   pgdata:
+
 networks:
   frontend:
   backend:
